@@ -24,6 +24,19 @@ From here, you can type commands to transform data from log files:
 TBD
 ```
 
+## Data Formats<a name="data-formats" />
+
+robologs currently supports transformations on the following data formats:
+
+| Format            | Extension | Support
+| ----------------  | --------  | --------
+| ROS               | .bag      | 🛠
+| MCAP              | .mcap     | 🛠 
+| PX4               | .ulg      | 🛠 
+| ArduPilot         | .bin      | 🛠 
+
+Do you have a request for a data format that's not listed above? Raise an issue or join our Slack community and make a request!
+
 ## Community
 
 If you have any questions, comments, or want to chat, please join [our Slack channel](#).

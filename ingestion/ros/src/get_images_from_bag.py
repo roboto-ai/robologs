@@ -1,9 +1,9 @@
 import argparse
 import os.path
-
-import ros_utils
 import utils.file_utils
+import ros_utils
 import argument_parsers
+from rospy import rostime
 
 
 def main():
@@ -11,11 +11,13 @@ def main():
 
     parser.add_argument(
         '-i', '--input',
-        help='single rosbag, or folder with rosbags')
+        help='single rosbag, or folder with rosbags',
+        required=True)
 
     parser.add_argument(
         '-o', '--output',
         help="output folder",
+        required=True
     )
 
     parser.add_argument(
@@ -52,6 +54,18 @@ def main():
         help="only extract every n-th frame",
     )
 
+    parser.add_argument(
+        '--start_time',
+        type=float,
+        help="only extract from start_time",
+    )
+
+    parser.add_argument(
+        '--end_time',
+        type=float,
+        help="only extract until end_time",
+    )
+
     args = parser.parse_args()
     input_path = args.input
     output_path = args.output
@@ -59,23 +73,25 @@ def main():
     topics = args.topics.split(',') if args.topics is not None else args.topics
     resize = argument_parsers.get_width_height_from_args(args.resize)
     sample = int(args.sample) if args.sample is not None else args.sample
+    start_time = rostime.Time.from_sec(args.start_time) if args.start_time is not None else args.start_time
+    end_time = rostime.Time.from_sec(args.end_time) if args.end_time is not None else args.end_time
 
-    # rosbag_info_dict = ros_utils.get_bag_info_from_file_or_folder(input_path)
-
-    # if os.path.isdir(output_path):
-    #     output_file_path = os.path.join(output_path, output_filename)
-    #     utils.file_utils.save_json(rosbag_info_dict, output_file_path)
+    if os.path.isdir(input_path):
+        rosbag_file_list = utils.file_utils.get_all_files_of_type_in_directory(input_folder=input_path,
+                                                                               file_format="bag")
+        for rosbag_path in rosbag_file_list:
+            ros_utils.get_images_from_bag(rosbag_path=rosbag_path,
+                                          output_folder=output_path,
+                                          file_format=args.format,
+                                          create_manifest=args.manifest,
+                                          topics=topics,
+                                          naming=args.naming,
+                                          resize=resize,
+                                          sample=sample,
+                                          start_time=start_time,
+                                          end_time=end_time)
 
     if os.path.isfile(input_path):
-        if not topics:
-            all_topics_dict = ros_utils.get_bag_info_from_file(rosbag_path=input_path)["topics"]
-            img_topic_types = ros_utils.get_image_topic_types()
-            print(img_topic_types)
-            print(all_topics_dict)
-            topics = ros_utils.get_topic_names_of_type(all_topics=all_topics_dict,
-                                                       filter_topic_types=img_topic_types)
-            print(topics)
-            exit()
         ros_utils.get_images_from_bag(rosbag_path=input_path,
                                       output_folder=output_path,
                                       file_format=args.format,
@@ -83,7 +99,9 @@ def main():
                                       topics=topics,
                                       naming=args.naming,
                                       resize=resize,
-                                      sample=sample)
+                                      sample=sample,
+                                      start_time=start_time,
+                                      end_time=end_time)
 
 
 if __name__ == '__main__':

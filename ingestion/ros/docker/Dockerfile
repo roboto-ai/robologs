@@ -40,6 +40,7 @@ RUN pip install lxml
 RUN pip install urllib3
 RUN pip install bagpy
 RUN pip install rospkg
+RUN pip install progressbar
 
 ENV PYTHONPATH="$PYTHONPATH:/function"
 

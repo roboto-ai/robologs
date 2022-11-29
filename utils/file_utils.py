@@ -137,16 +137,17 @@ def untar_file_to_folder(path_tar_file: str, output_folder: str) -> None:
     return
 
 
-def get_all_pdf_files_in_directory(input_folder: str) -> list:
+def get_all_files_of_type_in_directory(input_folder: str, file_format: str) -> list:
     """
-    This function gets a list of .pdf files in a directory
+    This function gets a list of all files of type "file_format" in a directory
     Args:
         input_folder (str): input folder path
 
     Returns: list with .pdf files
 
     """
-    return sorted(glob.glob(os.path.join(input_folder, './*.pdf')))
+    file_string = f"./*.{file_format}"
+    return sorted(glob.glob(os.path.abspath(os.path.join(input_folder, file_string))))
 
 
 def find_substring_path(input_folder: str, substring: str) -> str:

@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "robologs"
+version = "0.1.1a5"
+description = "robologs is an open source library of containerized data transformations for the robotics and drone communities"
+authors = ["roboto.ai <info@roboto.ai>"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.23.1"
+opencv-python = "^4.5.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

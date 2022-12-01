@@ -3,11 +3,16 @@
 This module contains functions to extract data from rosbags.
 
 """
-import rospy
+#import rospy
+from bagpy import bagreader
+
+from rosbags.rosbag1 import Reader
+from rosbags.serde import deserialize_cdr, ros1_to_cdr
+
 import yaml
 import os
 import glob
-from rosbag.bag import Bag
+#from rosbag.bag import Bag
 from typing import Optional
 import cv2
 import numpy as np
@@ -35,7 +40,26 @@ def get_bag_info_from_file(rosbag_path: str) -> dict:
     if not rosbag_path.endswith('.bag'):
         raise Exception(f"{rosbag_path} is not a rosbag.")
 
-    return yaml.load(Bag(os.path.abspath(rosbag_path), 'r')._get_yaml_info(), Loader=yaml.FullLoader)
+    bag = bagreader(rosbag_path)
+    file_stats = os.stat(rosbag_path)
+
+    summary_dict = dict()
+    summary_dict["start_time"] = bag.start_time
+    summary_dict["end_time"] = bag.end_time
+    summary_dict["duration"] = bag.end_time - bag.start_time
+    summary_dict["file_size_mb"] = file_stats.st_size / (1024 * 1024)
+    summary_dict["topics"] = bag.topic_table.to_dict('records')
+
+    return summary_dict
+
+
+def get_topic_dict(rosbag_metadata_dict: dict) -> dict:
+    topic_dict = dict()
+
+    for entry in rosbag_metadata_dict["topics"]:
+        topic_dict[entry["Topics"]] = entry
+        
+    return topic_dict
 
 
 def get_bag_info_from_file_or_folder(input_path: str) -> dict:
@@ -90,29 +114,29 @@ def get_topic_names_of_type(all_topics: list, filter_topic_types: list) -> list:
     Returns:
 
     """
-    return [x["topic"] for x in all_topics if x["type"] in filter_topic_types]
+    return [x["Topics"] for x in all_topics if x["Types"] in filter_topic_types]
 
 
-def rosbag_function_callback(rosbag_path: str, function, topics=None, **args) -> None:
-    """
-    Args:
-        rosbag_path ():
-        function ():
-        topics ():
-        **args ():
-
-    Returns:
-
-    """
-    bag = Bag(rosbag_path, "r")
-
-    if not topics:
-        for topic, msg, t in bag.read_messages():
-            function(topic, msg, t, args)
-    else:
-        for topic, msg, t in bag.read_messages(topics=topics):
-            function(topic, msg, t, args)
-    return
+# def rosbag_function_callback(rosbag_path: str, function, topics=None, **args) -> None:
+#     """
+#     Args:
+#         rosbag_path ():
+#         function ():
+#         topics ():
+#         **args ():
+#
+#     Returns:
+#
+#     """
+#     bag = Bag(rosbag_path, "r")
+#
+#     if not topics:
+#         for topic, msg, t in bag.read_messages():
+#             function(topic, msg, t, args)
+#     else:
+#         for topic, msg, t in bag.read_messages(topics=topics):
+#             function(topic, msg, t, args)
+#     return
 
 
 def get_image_name_from_timestamp(timestamp: int, file_format: str = "jpg") -> str:
@@ -191,8 +215,8 @@ def get_images_from_bag(rosbag_path: str,
                         naming: str = "sequential",
                         resize: Optional[list] = None,
                         sample: Optional[int] = None,
-                        start_time: Optional[rospy.Time] = None,
-                        end_time: Optional[rospy.Time] = None):
+                        start_time: Optional[float] = None,
+                        end_time: Optional[float] = None):
     """
     Args:
         rosbag_path (str):
@@ -210,102 +234,119 @@ def get_images_from_bag(rosbag_path: str,
 
     """
 
-    rosbag_metadata = get_bag_info_from_file(rosbag_path=rosbag_path)
+    rosbag_metadata_dict = get_bag_info_from_file(rosbag_path=rosbag_path)
+    topic_dict = get_topic_dict(rosbag_metadata_dict=rosbag_metadata_dict)
+
+    print(topic_dict)
 
     filter_duration = get_filter_fraction(start_time=start_time,
                                           end_time=end_time,
-                                          start_rosbag=rosbag_metadata["start"],
-                                          end_rosbag=rosbag_metadata["end"])
+                                          start_rosbag=rosbag_metadata_dict["start_time"],
+                                          end_rosbag=rosbag_metadata_dict["end_time"])
 
     if not topics:
-        all_topics_dict = rosbag_metadata["topics"]
+        all_topics_dict = rosbag_metadata_dict["topics"]
         img_topic_types = get_image_topic_types()
         topics = get_topic_names_of_type(all_topics=all_topics_dict, filter_topic_types=img_topic_types)
 
-    bag = Bag(rosbag_path, "r")
-    bridge = CvBridge()
     topic_msg_counter_dict = dict()
     total_number_of_images = 0
     manifest_dict = dict()
+    exit()
 
-    for topic in topics:
-        topic_msg_counter_dict[topic] = 0
-        total_number_of_images += bag.get_message_count(topic)
-        manifest_dict[topic] = dict()
 
-    if sample:
-        total_number_of_images /= sample
 
-    if start_time or end_time:
-        total_number_of_images = int(total_number_of_images * filter_duration)
-
-    if not topics:
-        logging.warning(f"Robologs: no image topics to extract in {rosbag_path}...")
-
-        return
-
-    logging.debug(f"Robologs: extracting images...")
-    print(f"Robologs: extracting {total_number_of_images} images...")
-
-    with tqdm(total=total_number_of_images) as pbar:
-        for it, (topic, msg, t) in enumerate(bag.read_messages(topics=topics, start_time=start_time, end_time=end_time)):
-            if sample and not (topic_msg_counter_dict[topic] % sample) == 0:
-                topic_msg_counter_dict[topic] += 1
-                continue
-
-            topic_name_underscore = replace_ros_topic_name(topic)
-
-            output_images_folder_folder_path = os.path.join(output_folder, topic_name_underscore)
-
-            if not os.path.exists(output_images_folder_folder_path):
-                os.makedirs(output_images_folder_folder_path)
-
-            if "compressedDepth" in msg.format:
-                cv_image = convert_compressed_depth_to_cv2(msg)
-            else:
-                cv_image = bridge.compressed_imgmsg_to_cv2(msg)
-
-            if naming == "rosbag_timestamp":
-                image_name = get_image_name_from_timestamp(timestamp=t.to_nsec(),
-                                                           file_format=file_format)
-
-            elif naming == "message_timestamp":
-                image_name = get_image_name_from_timestamp(timestamp=msg.header.stamp.to_nsec(),
-                                                           file_format=file_format)
-
-            else:
-                image_name = get_image_name_from_index(index=topic_msg_counter_dict[topic],
-                                                       file_format=file_format)
-
-            image_name = f"{topic_name_underscore}_{image_name}"
-
-            image_path = os.path.join(output_images_folder_folder_path, image_name)
-
-            if resize:
-                cv_image = utils.img_utils.resize_image(img=cv_image,
-                                                        new_width=resize[0],
-                                                        new_height=resize[1])
-
-            cv2.imwrite(image_path, cv_image)
-
-            if create_manifest:
-                manifest_dict[topic][image_name] = create_manifest_entry_dict(msg_timestamp=msg.header.stamp.to_nsec(),
-                                                                              rosbag_timestamp=t.to_nsec(),
-                                                                              file_path=image_path,
-                                                                              index=topic_msg_counter_dict[topic])
-
-            if topic in topic_msg_counter_dict.keys():
-                topic_msg_counter_dict[topic] += 1
-
-            pbar.update(1)
-
-    if create_manifest:
-        for key in manifest_dict.keys():
-            output_images_folder_folder_path = os.path.join(output_folder, replace_ros_topic_name(key))
-            output_path_manifest_json = os.path.join(output_images_folder_folder_path, "img_manifest.json")
-            utils.file_utils.save_json(manifest_dict[key], output_path_manifest_json)
-
-    return
+    # for topic in topics:
+    #     topic_msg_counter_dict[topic] = 0
+    #     total_number_of_images += bag.get_message_count(topic)
+    #     manifest_dict[topic] = dict()
+    # 
+    # if sample:
+    #     total_number_of_images /= sample
+    # 
+    # if start_time or end_time:
+    #     total_number_of_images = int(total_number_of_images * filter_duration)
+    # 
+    # if not topics:
+    #     logging.warning(f"Robologs: no image topics to extract in {rosbag_path}...")
+    # 
+    #     return
+    # 
+    # logging.debug(f"Robologs: extracting images...")
+    # print(f"Robologs: extracting {total_number_of_images} images...")
+    # 
+    # with Reader(rosbag_path) as reader:
+    # 
+    #     connections = [x for x in reader.connections if x.topic in topics]
+    #     for connection, timestamp, rawdata in reader.messages(connections=connections):
+    #         msg = deserialize_cdr(ros1_to_cdr(rawdata, connection.msgtype), connection.msgtype)
+    #         cv_image = convert_compressed_depth_to_cv2(msg)
+    #         cv2.imshow("aa", cv_image)
+    #         cv2.wa
+    # 
+    #         print(timestamp)
+    #         print(msg)
+    #         exit()
+    # 
+    # with tqdm(total=total_number_of_images) as pbar:
+    #     for it, (topic, msg, t) in enumerate(bag.read_messages(topics=topics, start_time=start_time, end_time=end_time)):
+    #         if sample and not (topic_msg_counter_dict[topic] % sample) == 0:
+    #             topic_msg_counter_dict[topic] += 1
+    #             continue
+    # 
+    #         topic_name_underscore = replace_ros_topic_name(topic)
+    # 
+    #         output_images_folder_folder_path = os.path.join(output_folder, topic_name_underscore)
+    # 
+    #         if not os.path.exists(output_images_folder_folder_path):
+    #             os.makedirs(output_images_folder_folder_path)
+    # 
+    #         if "compressedDepth" in msg.format:
+    #             cv_image = convert_compressed_depth_to_cv2(msg)
+    #         else:
+    #             cv_image = bridge.compressed_imgmsg_to_cv2(msg)
+    # 
+    #         if naming == "rosbag_timestamp":
+    #             image_name = get_image_name_from_timestamp(timestamp=t.to_nsec(),
+    #                                                        file_format=file_format)
+    # 
+    #         elif naming == "message_timestamp":
+    #             image_name = get_image_name_from_timestamp(timestamp=msg.header.stamp.to_nsec(),
+    #                                                        file_format=file_format)
+    # 
+    #         else:
+    #             image_name = get_image_name_from_index(index=topic_msg_counter_dict[topic],
+    #                                                    file_format=file_format)
+    # 
+    #         image_name = f"{topic_name_underscore}_{image_name}"
+    # 
+    #         image_path = os.path.join(output_images_folder_folder_path, image_name)
+    # 
+    #         if resize:
+    #             cv_image = utils.img_utils.resize_image(img=cv_image,
+    #                                                     new_width=resize[0],
+    #                                                     new_height=resize[1])
+    # 
+    #         cv2.imwrite(image_path, cv_image)
+    # 
+    #         if create_manifest:
+    #             manifest_dict[topic][image_name] = create_manifest_entry_dict(msg_timestamp=msg.header.stamp.to_nsec(),
+    #                                                                           rosbag_timestamp=t.to_nsec(),
+    #                                                                           file_path=image_path,
+    #                                                                           index=topic_msg_counter_dict[topic])
+    # 
+    #         if topic in topic_msg_counter_dict.keys():
+    #             topic_msg_counter_dict[topic] += 1
+    # 
+    #         pbar.update(1)
+    # 
+    # if create_manifest:
+    #     for key in manifest_dict.keys():
+    #         output_images_folder_folder_path = os.path.join(output_folder, replace_ros_topic_name(key))
+    #         output_path_manifest_json = os.path.join(output_images_folder_folder_path, "img_manifest.json")
+    #         utils.file_utils.save_json(manifest_dict[key], output_path_manifest_json)
+    # 
+    # return
 
 
 def convert_compressed_depth_to_cv2(compressed_depth):

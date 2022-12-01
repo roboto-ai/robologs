@@ -73,8 +73,8 @@ def main():
     topics = args.topics.split(',') if args.topics is not None else args.topics
     resize = argument_parsers.get_width_height_from_args(args.resize)
     sample = int(args.sample) if args.sample is not None else args.sample
-    start_time = rostime.Time.from_sec(args.start_time) if args.start_time is not None else args.start_time
-    end_time = rostime.Time.from_sec(args.end_time) if args.end_time is not None else args.end_time
+    start_time = args.start_time if args.start_time is not None else args.start_time
+    end_time = args.end_time if args.end_time is not None else args.end_time
 
     if os.path.isdir(input_path):
         rosbag_file_list = utils.file_utils.get_all_files_of_type_in_directory(input_folder=input_path,

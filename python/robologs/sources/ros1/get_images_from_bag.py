@@ -40,7 +40,7 @@ def main():
 
     parser.add_argument(
         '-n', '--naming',
-        help="naming convention for output images. Options are: rosbag_timestamp, message_timestamp, or sequential",
+        help="naming convention for output images. Options are: rosbag_timestamp, msg_timestamp, or sequential",
         default="sequential",
     )
 

@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 def convert_compressed_depth_to_cv2(compressed_depth):
     """
     Convert a compressedDepth topic image into a cv2 image.

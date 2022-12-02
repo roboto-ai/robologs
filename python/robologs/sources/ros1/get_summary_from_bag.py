@@ -1,12 +1,13 @@
 import argparse
 import os.path
 
-import ros_utils
-import utils.file_utils
+from robologs.utils.file_utils import file_utils
+from robologs.sources.ros1 import ros_utils
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Get Summary from Rosbag")
+    parser = argparse.ArgumentParser(description="Get Summary from Rosbag1",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
         '-i', '--input',
         help='single rosbag, or folder with rosbags')
@@ -31,12 +32,12 @@ def main():
 
     if os.path.isdir(output_path):
         output_file_path = os.path.join(output_path, output_filename)
-        utils.file_utils.save_json(data=rosbag_info_dict,
-                                   path=output_file_path)
+        file_utils.save_json(data=rosbag_info_dict,
+                             path=output_file_path)
 
     if os.path.isfile(output_path):
-        utils.file_utils.save_json(data=rosbag_info_dict,
-                                   path=output_path)
+        file_utils.save_json(data=rosbag_info_dict,
+                             path=output_path)
 
     return
 

@@ -1,13 +1,13 @@
 import argparse
 import os.path
 import utils.file_utils
-import ros_utils
-import argument_parsers
-from rospy import rostime
+from robologs.sources.ros1 import ros_utils
+from robologs.sources.ros1 import argument_parsers
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Get Images from Rosbag")
+    parser = argparse.ArgumentParser(description="Get Images from Rosbag1",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument(
         '-i', '--input',

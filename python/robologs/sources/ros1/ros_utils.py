@@ -14,11 +14,10 @@ from typing import Optional
 import cv2
 import logging
 from tqdm import tqdm
-import ros_img_tools
 
-
-import utils.file_utils
-import utils.img_utils
+from robologs.sources.ros1 import ros_img_tools
+from robologs.utils.file_utils import file_utils
+from robologs.utils.img_utils import img_utils
 
 
 def get_bag_info_from_file(rosbag_path: str) -> dict:
@@ -341,7 +340,7 @@ def get_images_from_bag(rosbag_path: str,
                 image_path = os.path.join(output_images_folder_folder_path, image_name)
 
                 if resize:
-                    cv_image = utils.img_utils.resize_image(img=cv_image,
+                    cv_image = img_utils.resize_image(img=cv_image,
                                                             new_width=resize[0],
                                                             new_height=resize[1])
 
@@ -366,7 +365,7 @@ def get_images_from_bag(rosbag_path: str,
                     os.makedirs(output_images_folder_folder_path)
 
                 output_path_manifest_json = os.path.join(output_images_folder_folder_path, "img_manifest.json")
-                utils.file_utils.save_json(manifest_dict[key], output_path_manifest_json)
+                file_utils.save_json(manifest_dict[key], output_path_manifest_json)
 
     return
 

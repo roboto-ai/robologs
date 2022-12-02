@@ -16,12 +16,28 @@ If you are an engineer or scientist working in robotics, machine learning, compu
 
 ## Python Quickstart<a name="python-quickstart" />
 
-Installing robologs using the pip package manager is as easy as running `pip install robologs` in your terminal.
+Installing robologs using the pip package manager is easy:
 
-From here, you can type commands to transform data from log files:
+We suggest that you use a clean environment to avoid any dependency conflicts:
+```python
+conda create --name robologs_env python=3.8
+conda activate robologs_env
+```
+
 
 ```python
-TBD
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple robologs
+```
+
+From here, you can type commands to transform data from log files. For example, if you want to extract images from a ROSBag file, type:
+
+```python
+robologs_get_images_from_bag -h
+```
+
+Or if you want to get metadata from a ROSBag file:
+```python
+robologs_get_summary_from_bag
 ```
 
 ## Data Formats<a name="data-formats" />

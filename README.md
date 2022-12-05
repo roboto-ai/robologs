@@ -37,8 +37,21 @@ robologs_get_images_from_bag -h
 
 Or if you want to get metadata from a ROSBag file:
 ```python
-robologs_get_summary_from_bag
+robologs_get_summary_from_bag -h
 ```
+
+## Use Docker 
+You can build a local version of the robologs-image container as follows:
+```bash
+cd ~/Code/robologs
+docker build --network=host -t robologs-image --file docker/ros1/Dockerfile .
+```
+
+And here is how you can run a robologs command using the docker container:
+```bash
+docker run --volume ~/Desktop/scratch/:/input/ -it robologs-image robologs-get-videos-from-bag -i /input/some_rosbag.bag -o /input/ --naming rosbag_timestamp --format jpg --save_images
+```
+
 
 ## Data Formats<a name="data-formats" />
 

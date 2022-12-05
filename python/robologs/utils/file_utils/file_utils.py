@@ -161,3 +161,19 @@ def find_substring_path(input_folder: str, substring: str) -> str:
     """
     glob_str = f"{input_folder}*{substring}*"
     return glob.glob(glob_str)
+
+
+def delete_files_of_type(input_folder: str, file_format_list: list = [".jpg", ".png"]) -> None:
+    """
+    This function deletes all files of type
+    Args:
+        input_folder (str): input folder
+        file_format_list (list): list of file types to be deleted. E.g. [.jpg, .png]
+
+    Returns:
+
+    """
+    for file_format in file_format_list:
+        for filename in sorted(glob.glob(os.path.join(input_folder, f"./*{file_format}"))):
+            os.remove(filename)
+    return

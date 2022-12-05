@@ -1,5 +1,8 @@
 import cv2
 import numpy as np
+import os
+import glob
+import subprocess
 
 
 def convert_compressed_depth_to_cv2(compressed_depth):
@@ -34,6 +37,53 @@ def convert_compressed_depth_to_cv2(compressed_depth):
 
 
 def convert_image_to_cv2(msg):
+    """
+    Args:
+        msg ():
+
+    Returns:
+
+    """
     np_arr = np.fromstring(msg.data, np.uint8)
     image_np = cv2.imdecode(np_arr, cv2.IMREAD_UNCHANGED)
     return image_np
+
+
+def create_video_from_images(input_path, output_path, output_name="video.mp4", frame_rate=12, resize=None):
+    """
+    Args:
+        input_path ():
+        output_path ():
+        output_name ():
+        frame_rate ():
+        resize ():
+
+    Returns:
+
+    """
+    img_array = []
+    output_video_path = os.path.join(output_path, output_name)
+    output_video_path_temp = os.path.join(output_path, "temp.mp4")
+
+    for filename in sorted(glob.glob(os.path.join(input_path, './*.jpg'))):
+        img = cv2.imread(filename)
+        if resize:
+            img = cv2.resize(img, (0, 0), fx=resize, fy=resize, interpolation=cv2.INTER_LANCZOS4)
+
+        if len(img.shape) == 3:
+            height, width, _ = img.shape
+        else:
+            height, width = img.shape
+
+        size = (width, height)
+        img_array.append(img)
+
+    out = cv2.VideoWriter(output_video_path_temp, cv2.VideoWriter_fourcc(*'mp4v'), frame_rate, size)
+
+    for i in range(len(img_array)):
+        out.write(img_array[i])
+    out.release()
+
+    subprocess.call(["ffmpeg", "-i", output_video_path_temp, "-vcodec", "libx264", "-y", output_video_path])
+    os.remove(output_video_path_temp)
+    return

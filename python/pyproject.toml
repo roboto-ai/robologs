@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "robologs"
-version = "0.1.1a15"
+version = "0.1.1a19"
 description = "robologs is an open source library of containerized data transformations for the robotics and drone communities"
 authors = ["roboto.ai <info@roboto.ai>"]
 license = "Apache-2.0"
@@ -16,8 +16,10 @@ bagpy = "^0.5"
 rosbags = "^0.9.13"
 
 [tool.poetry.scripts]
-robologs_get_summary_from_bag = "robologs.sources.ros1.get_summary_from_bag:main"
-robologs_get_images_from_bag = "robologs.sources.ros1.get_images_from_bag:main"
+robologs-get-summary-from-bag = "robologs.sources.ros1.get_summary_from_bag:main"
+robologs-get-images-from-bag = "robologs.sources.ros1.get_images_from_bag:main"
+robologs-get-videos-from-bag = "robologs.sources.ros1.get_videos_from_bag:main"
+
 
 [build-system]
 requires = ["poetry-core"]

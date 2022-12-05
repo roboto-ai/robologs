@@ -219,6 +219,35 @@ def check_if_in_time_range(t: float, start_time: float, end_time: float) -> bool
         return True
 
 
+def get_name_img_manifest():
+    """
+    Returns:
+
+    """
+    return "img_manifest.json"
+
+
+def get_video_from_image_folder(folder: str, save_imgs: bool = True) -> None:
+    """
+    Args:
+        folder (str):
+        delete_imgs (bool):
+
+    Returns:
+
+    """
+    img_manifest = file_utils.read_json(os.path.join(folder, get_name_img_manifest()))
+    frame_rate = round(img_manifest["topic"]["Frequency"], 2)
+    ros_img_tools.create_video_from_images(input_path=folder,
+                                           output_path=folder,
+                                           frame_rate=frame_rate)
+
+    if not save_imgs:
+        file_utils.delete_files_of_type(folder)
+
+    return
+
+
 def get_images_from_bag(rosbag_path: str,
                         output_folder: str,
                         file_format: str = "jpg",
@@ -341,8 +370,8 @@ def get_images_from_bag(rosbag_path: str,
 
                 if resize:
                     cv_image = img_utils.resize_image(img=cv_image,
-                                                            new_width=resize[0],
-                                                            new_height=resize[1])
+                                                      new_width=resize[0],
+                                                      new_height=resize[1])
 
                 cv2.imwrite(image_path, cv_image)
 
@@ -357,15 +386,21 @@ def get_images_from_bag(rosbag_path: str,
 
                 pbar.update(1)
 
+        output_imgs_folder_list = list()
+
         if create_manifest:
             for key in manifest_dict.keys():
                 output_images_folder_folder_path = os.path.join(output_folder, replace_ros_topic_name(key))
-
+                output_imgs_folder_list.append(output_images_folder_folder_path)
                 if not os.path.exists(output_images_folder_folder_path):
                     os.makedirs(output_images_folder_folder_path)
 
-                output_path_manifest_json = os.path.join(output_images_folder_folder_path, "img_manifest.json")
-                file_utils.save_json(manifest_dict[key], output_path_manifest_json)
+                output_dict = dict()
+                output_dict["images"] = manifest_dict[key]
+                output_dict["topic"] = topic_dict[key]
 
-    return
+                output_path_manifest_json = os.path.join(output_images_folder_folder_path, get_name_img_manifest())
+                file_utils.save_json(output_dict, output_path_manifest_json)
+
+    return output_imgs_folder_list
 

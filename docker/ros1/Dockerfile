@@ -41,9 +41,11 @@ RUN pip install urllib3
 RUN pip install bagpy
 RUN pip install rospkg
 RUN pip install progressbar
+RUN pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple robologs
+
 
 ENV PYTHONPATH="$PYTHONPATH:/function"
 
 # Include global arg in this stage of the build
 ARG FUNCTION_DIR
-ENTRYPOINT [ "/usr/bin/python3"]
+#ENTRYPOINT [ "/usr/bin/python3"]

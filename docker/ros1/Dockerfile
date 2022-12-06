@@ -1,11 +1,7 @@
-# Define function directory
-ARG FUNCTION_DIR="/function/"
-
 FROM ros:noetic-ros-core as build-image
 
 ENV DEBIAN_FRONTEND noninteractive
 
-# Install aws-lambda-cpp build dependencies
 RUN apt-get update && \
   apt-get install -y \
   g++ \
@@ -24,14 +20,6 @@ RUN apt-get update && \
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-# Include global arg in this stage of the build
-ARG FUNCTION_DIR
-# Create function directory
-RUN mkdir -p ${FUNCTION_DIR}
-
-# Copy function code
-COPY ./ ${FUNCTION_DIR}
-
 RUN pip install boto3
 RUN pip install opencv-python
 RUN pip install uuid
@@ -41,11 +29,9 @@ RUN pip install urllib3
 RUN pip install bagpy
 RUN pip install rospkg
 RUN pip install progressbar
-RUN pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple robologs
 
-
-ENV PYTHONPATH="$PYTHONPATH:/function"
-
-# Include global arg in this stage of the build
-ARG FUNCTION_DIR
-#ENTRYPOINT [ "/usr/bin/python3"]
+# Copy and install robologs Python module
+ARG ROBOLOGS_SRC_DIR="/robologs"
+RUN mkdir -p ${ROBOLOGS_SRC_DIR}
+COPY ./python ${ROBOLOGS_SRC_DIR}
+RUN pip install ${ROBOLOGS_SRC_DIR}

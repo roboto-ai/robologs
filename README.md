@@ -16,40 +16,38 @@ If you are an engineer or scientist working in robotics, machine learning, compu
 
 ## Python Quickstart<a name="python-quickstart" />
 
-Installing robologs using the pip package manager is easy:
+Installing robologs is easy using the pip package manager.
 
 We suggest that you use a clean environment to avoid any dependency conflicts:
-```python
+```bash
 conda create --name robologs_env python=3.8
 conda activate robologs_env
 ```
 
-
-```python
+```bash
 pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple robologs
 ```
 
-From here, you can type commands to transform data from log files. For example, if you want to extract images from a ROSBag file, type:
+From here, you can type commands to transform data from log files. For example, if you want to extract images from a rosbag file:
 
-```python
-robologs_get_images_from_bag -h
+```bash
+robologs ros get-images --help
 ```
 
-Or if you want to get metadata from a ROSBag file:
-```python
-robologs_get_summary_from_bag -h
+Or if you want to get metadata from a rosbag file:
+```bash
+robologs ros get-summary --help
 ```
 
 ## Use Docker 
-You can build a local version of the robologs-image container as follows:
+You can build a local version of the robologs Docker image as follows:
 ```bash
-cd ~/Code/robologs
-docker build --network=host -t robologs-image --file docker/ros1/Dockerfile .
+./build_image.sh
 ```
 
-And here is how you can run a robologs command using the docker container:
+And here is how you can run a robologs command inside the Docker image:
 ```bash
-docker run --volume ~/Desktop/scratch/:/input/ -it robologs-image robologs-get-videos-from-bag -i /input/some_rosbag.bag -o /input/ --naming rosbag_timestamp --format jpg --save_images
+docker run -v ~/Desktop/scratch/:/input/ -it --rm robologs-image robologs ros get-videos -i /input/some_rosbag.bag -o /input/ --naming rosbag_timestamp --format jpg --save-images
 ```
 
 

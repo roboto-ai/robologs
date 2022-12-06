@@ -1,32 +1,19 @@
-import argparse
+import click
 import os.path
 
 from robologs.utils.file_utils import file_utils
 from robologs.sources.ros1 import ros_utils
 
+@click.command()
+@click.option('--input', '-i', type=str, required=True, help='A single rosbag, or folder with rosbags')
+@click.option('--output', '-o', type=str, required=True, help='Output directory, or json path')
+@click.option('--file-name', '-f', type=str, default="rosbag_metadata.json", help='Output file name')
+def get_summary(input, output, file_name):
+    """Get summary of Rosbag1 data"""
 
-def main():
-    parser = argparse.ArgumentParser(description="Get Summary from Rosbag1",
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument(
-        '-i', '--input',
-        help='single rosbag, or folder with rosbags')
-
-    parser.add_argument(
-        '-o', '--output',
-        help="output folder, or json path",
-    )
-
-    parser.add_argument(
-        '-f', '--file_name',
-        default="rosbag_metadata.json",
-        help="output file name",
-    )
-
-    args = parser.parse_args()
-    input_path = args.input
-    output_path = args.output
-    output_filename = args.file_name
+    input_path = input
+    output_path = output
+    output_filename = file_name
 
     rosbag_info_dict = ros_utils.get_bag_info_from_file_or_folder(input_path=input_path)
 
@@ -41,6 +28,5 @@ def main():
 
     return
 
-
 if __name__ == '__main__':
-    main()
+    get_summary()

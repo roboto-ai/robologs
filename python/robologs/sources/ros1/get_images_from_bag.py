@@ -1,91 +1,42 @@
-import argparse
+import click
 import os.path
-import utils.file_utils
+from robologs.utils.file_utils import file_utils
 from robologs.sources.ros1 import ros_utils
 from robologs.sources.ros1 import argument_parsers
 
+@click.command()
+@click.option('--input', '-i', type=str, required=True, help='A single rosbag, or folder with rosbags')
+@click.option('--output', '-o', type=str, required=True, help='Output directory')
+@click.option('--format', '-f', type=str, default="jpg", help='Output image format')
+@click.option('--manifest', '-m', is_flag=True, help='Save manifest.json with timestamps and metadata')
+@click.option('--topics', '-t', type=str, help='Topic names used for extraction, comma-separated list')
+@click.option('--naming', '-n', default="sequential", help='Naming convention for output images. Options are: rosbag_timestamp, msg_timestamp, or sequential')
+@click.option('--resize', '-r', help='Resize image to width,height')
+@click.option('--sample', '-s', help='Only extract every n-th frame')
+@click.option('--start-time', type=float, help='Only extract from start time')
+@click.option('--end-time', type=float, help='Only extract until end time')
+def get_images(input, output, format, manifest, topics,
+               naming, resize, sample, start_time, end_time):
+    """Get images from Rosbag1 format"""
 
-def main():
-    parser = argparse.ArgumentParser(description="Get Images from Rosbag1",
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-    parser.add_argument(
-        '-i', '--input',
-        help='single rosbag, or folder with rosbags',
-        required=True)
-
-    parser.add_argument(
-        '-o', '--output',
-        help="output folder",
-        required=True
-    )
-
-    parser.add_argument(
-        '-f', '--format',
-        default="jpg",
-        help="output image format",
-    )
-
-    parser.add_argument(
-        '-m', '--manifest',
-        action='store_true',
-        help="save manifest.json with timestamps and metadata",
-    )
-
-    parser.add_argument(
-        '-t', '--topics',
-        type=str,
-        help="topic names used for extraction, comma-separated list",
-    )
-
-    parser.add_argument(
-        '-n', '--naming',
-        help="naming convention for output images. Options are: rosbag_timestamp, msg_timestamp, or sequential",
-        default="sequential",
-    )
-
-    parser.add_argument(
-        '-r', '--resize',
-        help="resize image to width,height",
-    )
-
-    parser.add_argument(
-        '-s', '--sample',
-        help="only extract every n-th frame",
-    )
-
-    parser.add_argument(
-        '--start_time',
-        type=float,
-        help="only extract from start_time",
-    )
-
-    parser.add_argument(
-        '--end_time',
-        type=float,
-        help="only extract until end_time",
-    )
-
-    args = parser.parse_args()
-    input_path = args.input
-    output_path = args.output
-
-    topics = args.topics.split(',') if args.topics is not None else args.topics
-    resize = argument_parsers.get_width_height_from_args(args.resize)
-    sample = int(args.sample) if args.sample is not None else args.sample
-    start_time = args.start_time if args.start_time is not None else args.start_time
-    end_time = args.end_time if args.end_time is not None else args.end_time
+    input_path = input
+    output_path = output
+    topics = topics.split(',') if topics is not None else topics
+    resize = argument_parsers.get_width_height_from_args(resize)
+    sample = int(sample) if sample is not None else sample
+    start_time = start_time if start_time is not None else start_time
+    end_time = end_time if end_time is not None else end_time
 
     if os.path.isdir(input_path):
-        rosbag_file_list = utils.file_utils.get_all_files_of_type_in_directory(input_folder=input_path,
+        rosbag_file_list = file_utils.get_all_files_of_type_in_directory(input_folder=input_path,
                                                                                file_format="bag")
         for rosbag_path in rosbag_file_list:
             ros_utils.get_images_from_bag(rosbag_path=rosbag_path,
                                           output_folder=output_path,
-                                          file_format=args.format,
-                                          create_manifest=args.manifest,
+                                          file_format=format,
+                                          create_manifest=manifest,
                                           topics=topics,
-                                          naming=args.naming,
+                                          naming=naming,
                                           resize=resize,
                                           sample=sample,
                                           start_time=start_time,
@@ -94,10 +45,10 @@ def main():
     if os.path.isfile(input_path):
         ros_utils.get_images_from_bag(rosbag_path=input_path,
                                       output_folder=output_path,
-                                      file_format=args.format,
-                                      create_manifest=args.manifest,
+                                      file_format=format,
+                                      create_manifest=manifest,
                                       topics=topics,
-                                      naming=args.naming,
+                                      naming=naming,
                                       resize=resize,
                                       sample=sample,
                                       start_time=start_time,
@@ -105,4 +56,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    get_images()

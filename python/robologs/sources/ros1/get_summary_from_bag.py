@@ -28,5 +28,6 @@ def get_summary(input, output, file_name):
 
     return
 
+
 if __name__ == '__main__':
     get_summary()

@@ -4,6 +4,7 @@ from inspect import getmembers
 from robologs.sources.ros1.commands import ros
 from robologs.sources.ros2.commands import ros2
 from robologs.sources.ulog.commands import ulog
+from robologs.connectors.commands import connectors
 
 @click.group(invoke_without_command=True)
 @click.pass_context
@@ -22,12 +23,16 @@ def cli(ctx):
         click.echo("Run robologs --help to see a list of available commands")
         click.echo("")
 
+
 cli.add_command(ros)
 cli.add_command(ros2)
 cli.add_command(ulog)
+cli.add_command(connectors)
+
 
 def main():
     cli()
+
 
 if __name__ == '__main__':
     main()

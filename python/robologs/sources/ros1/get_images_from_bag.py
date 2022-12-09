@@ -4,6 +4,7 @@ from robologs.utils.file_utils import file_utils
 from robologs.sources.ros1 import ros_utils
 from robologs.sources.ros1 import argument_parsers
 
+
 @click.command()
 @click.option('--input', '-i', type=str, required=True, help='A single rosbag, or folder with rosbags')
 @click.option('--output', '-o', type=str, required=True, help='Output directory')

@@ -1,4 +1,3 @@
-from classes import Connectors
-
-a = Connectors().dict()
-
+# from classes import Connectors
+#
+# a = Connectors().dict()

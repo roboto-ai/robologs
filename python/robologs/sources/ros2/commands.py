@@ -1,5 +1,6 @@
 import click
 
+
 @click.group()
 def ros2():
     """
@@ -7,6 +8,7 @@ def ros2():
     """
     pass
 
+
 @ros2.command()
 def noop():
-    click.echo('This is the noop subcommand of the ros2 command')
+    click.echo("This is the noop subcommand of the ros2 command")

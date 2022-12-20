@@ -71,6 +71,40 @@ If you have any questions, comments, or want to chat, please join [our Slack cha
 ## Contribute 
 ### How to Contribute
 
+#### How to run tests, mypy, isort and black?
+
+```bash
+# activate poetry shell
+poetry shell
+cd ~/Code/robologs/python/
+#run the tests
+poetry run coverage run -m --source=robologs pytest tests
+# run the coverage report
+poetry run coverage report
+# run black -> remove the --check to reformat
+poetry run black --check .
+# run my py
+poetry run mypy robologs/sources/
+# run isort -> remove the --check to reformat
+poetry run isort --check-only .
+```
+
+#### How to release a new version?
+```bash
+# make sure you have permission configured to push to the TestPy repo
+poetry config pypi-token.test-pypi  pypi-AgENdGVzdC5weXBpLm9yZwIkYTJlMzA1NTAtYTc3OC00YWUzLWI5NmUtNDhiNzdiNGExYTc4AAIqWzMsIjZjZTliYzBkLWE3MmEtNDM1My1iMzNjLWJmNjgzMjA1NWQ3YSJdAAAGIKLo5nQ27sWQ_Dt3Itax_kKUBwgpo1cOitiuagbRhjWf 
+
+poetry version prerelease
+
+poetry build
+
+poetry publish -r test-pypi
+
+```
+
+
+poetry version prerelease
+
 We welcome contributions to robologs. Please see our [contribution guide](#) and our [development guide](#) for details.
 
 ### Contributors

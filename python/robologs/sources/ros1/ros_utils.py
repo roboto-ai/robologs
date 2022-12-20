@@ -3,16 +3,18 @@
 This module contains functions to extract data from rosbags.
 
 """
-from bagpy import bagreader
+import glob
+import logging
+import os
+from typing import Optional, Union, Tuple
 
+import cv2
+import numpy as np
+from bagpy import bagreader
+from PIL import Image
+from rosbag import Bag
 from rosbags.rosbag1 import Reader
 from rosbags.serde import deserialize_cdr, ros1_to_cdr
-
-import os
-import glob
-from typing import Optional
-import cv2
-import logging
 from tqdm import tqdm
 
 from robologs.sources.ros1 import ros_img_tools
@@ -33,7 +35,7 @@ def get_bag_info_from_file(rosbag_path: str) -> dict:
     if not os.path.exists(rosbag_path):
         raise Exception(f"{rosbag_path} does not exist.")
 
-    if not rosbag_path.endswith('.bag'):
+    if not rosbag_path.endswith(".bag"):
         raise Exception(f"{rosbag_path} is not a rosbag.")
 
     bag = bagreader(rosbag_path)
@@ -44,7 +46,7 @@ def get_bag_info_from_file(rosbag_path: str) -> dict:
     summary_dict["end_time"] = bag.end_time
     summary_dict["duration"] = bag.end_time - bag.start_time
     summary_dict["file_size_mb"] = file_stats.st_size / (1024 * 1024)
-    summary_dict["topics"] = bag.topic_table.to_dict('records')
+    summary_dict["topics"] = bag.topic_table.to_dict("records")
 
     return summary_dict
 
@@ -54,7 +56,7 @@ def get_topic_dict(rosbag_metadata_dict: dict) -> dict:
 
     for entry in rosbag_metadata_dict["topics"]:
         topic_dict[entry["Topics"]] = entry
-        
+
     return topic_dict
 
 
@@ -70,10 +72,10 @@ def get_bag_info_from_file_or_folder(input_path: str) -> dict:
 
     rosbag_info_dict = dict()
 
-    if input_path.endswith('.bag'):
+    if input_path.endswith(".bag"):
         rosbag_info_dict[os.path.abspath(input_path)] = get_bag_info_from_file(input_path)
     else:
-        for filename in sorted(glob.glob(os.path.join(input_path, './*.bag'))):
+        for filename in sorted(glob.glob(os.path.join(input_path, "./*.bag"))):
             rosbag_info_dict[os.path.abspath(filename)] = get_bag_info_from_file(filename)
 
     return rosbag_info_dict
@@ -91,11 +93,13 @@ def create_manifest_entry_dict(msg_timestamp: int, rosbag_timestamp: int, file_p
 
     """
     _, img_name = os.path.split(file_path)
-    return {"msg_timestamp": msg_timestamp,
-            "rosbag_timestamp": rosbag_timestamp,
-            "path": file_path,
-            "msg_index": index,
-            "img_name": img_name}
+    return {
+        "msg_timestamp": msg_timestamp,
+        "rosbag_timestamp": rosbag_timestamp,
+        "path": file_path,
+        "msg_index": index,
+        "img_name": img_name,
+    }
 
 
 def get_image_topic_types():
@@ -174,7 +178,7 @@ def get_filter_fraction(start_time: Optional[float], end_time: Optional[float], 
         return
 
     if start_time and end_time:
-        return float((end_time-start_time) / rosbag_duration)
+        return float((end_time - start_time) / rosbag_duration)
 
     if start_time and not end_time:
         return float((end_rosbag - start_time) / rosbag_duration)
@@ -238,9 +242,7 @@ def get_video_from_image_folder(folder: str, save_imgs: bool = True) -> None:
     """
     img_manifest = file_utils.read_json(os.path.join(folder, get_name_img_manifest()))
     frame_rate = round(img_manifest["topic"]["Frequency"], 2)
-    ros_img_tools.create_video_from_images(input_path=folder,
-                                           output_path=folder,
-                                           frame_rate=frame_rate)
+    ros_img_tools.create_video_from_images(input_path=folder, output_path=folder, frame_rate=frame_rate)
 
     if not save_imgs:
         file_utils.delete_files_of_type(folder)
@@ -248,16 +250,18 @@ def get_video_from_image_folder(folder: str, save_imgs: bool = True) -> None:
     return
 
 
-def get_images_from_bag(rosbag_path: str,
-                        output_folder: str,
-                        file_format: str = "jpg",
-                        topics: Optional[list] = None,
-                        create_manifest: bool = False,
-                        naming: str = "sequential",
-                        resize: Optional[list] = None,
-                        sample: Optional[int] = None,
-                        start_time: Optional[float] = None,
-                        end_time: Optional[float] = None):
+def get_images_from_bag(
+    rosbag_path: str,
+    output_folder: str,
+    file_format: str = "jpg",
+    topics: Optional[list] = None,
+    create_manifest: bool = False,
+    naming: str = "sequential",
+    resize: Optional[list] = None,
+    sample: Optional[int] = None,
+    start_time: Optional[float] = None,
+    end_time: Optional[float] = None,
+):
     """
     Args:
         rosbag_path (str):
@@ -299,10 +303,12 @@ def get_images_from_bag(rosbag_path: str,
     nr_imgs_to_extract = total_number_of_images
 
     if start_time or end_time:
-        filter_duration = get_filter_fraction(start_time=start_time,
-                                              end_time=end_time,
-                                              start_rosbag=rosbag_metadata_dict["start_time"],
-                                              end_rosbag=rosbag_metadata_dict["end_time"])
+        filter_duration = get_filter_fraction(
+            start_time=start_time,
+            end_time=end_time,
+            start_rosbag=rosbag_metadata_dict["start_time"],
+            end_rosbag=rosbag_metadata_dict["end_time"],
+        )
         filter_duration = 0 if filter_duration < 0 else filter_duration
 
         nr_imgs_to_extract = int(total_number_of_images * filter_duration)
@@ -314,7 +320,7 @@ def get_images_from_bag(rosbag_path: str,
         logging.warning(f"Robologs: no image topics to extract in {rosbag_path}...")
 
         return
-    # 
+    #
     logging.debug(f"Robologs: extracting images...")
     print(f"Robologs: iterating over {total_number_of_images} images to extract: {nr_imgs_to_extract} images")
 
@@ -347,39 +353,41 @@ def get_images_from_bag(rosbag_path: str,
                 if not os.path.exists(output_images_folder_folder_path):
                     os.makedirs(output_images_folder_folder_path)
 
-                if "compressedDepth" in msg.format:
-                    cv_image = ros_img_tools.convert_compressed_depth_to_cv2(msg)
-                else:
-                    cv_image = ros_img_tools.convert_image_to_cv2(msg)
+                if msg.__msgtype__ == "sensor_msgs/msg/Image":
+                    img_encodings = {"rgb8": "RGB", "rgba8": "RGBA", "mono8": "L", "8UC3": "RGB"}
+                    cv_image = np.array(Image.frombytes(img_encodings[msg.encoding], (msg.width, msg.height), msg.data))
+
+                if msg.__msgtype__ == "sensor_msgs/msg/CompressedImage":
+                    if "compressedDepth" in msg.format:
+                        cv_image = ros_img_tools.convert_compressed_depth_to_cv2(msg)
+                    else:
+                        cv_image = ros_img_tools.convert_image_to_cv2(msg)
 
                 if naming == "rosbag_timestamp":
-                    image_name = get_image_name_from_timestamp(timestamp=t,
-                                                               file_format=file_format)
+                    image_name = get_image_name_from_timestamp(timestamp=t, file_format=file_format)
 
                 elif naming == "msg_timestamp":
-                    image_name = get_image_name_from_timestamp(timestamp=msg_timestamp,
-                                                               file_format=file_format)
+                    image_name = get_image_name_from_timestamp(timestamp=msg_timestamp, file_format=file_format)
 
                 else:
-                    image_name = get_image_name_from_index(index=topic_msg_counter_dict[topic],
-                                                           file_format=file_format)
+                    image_name = get_image_name_from_index(index=topic_msg_counter_dict[topic], file_format=file_format)
 
                 image_name = f"{topic_name_underscore}_{image_name}"
 
                 image_path = os.path.join(output_images_folder_folder_path, image_name)
 
                 if resize:
-                    cv_image = img_utils.resize_image(img=cv_image,
-                                                      new_width=resize[0],
-                                                      new_height=resize[1])
+                    cv_image = img_utils.resize_image(img=cv_image, new_width=resize[0], new_height=resize[1])
 
                 cv2.imwrite(image_path, cv_image)
 
                 if create_manifest:
-                    manifest_dict[topic][image_name] = create_manifest_entry_dict(msg_timestamp=msg_timestamp,
-                                                                                  rosbag_timestamp=t,
-                                                                                  file_path=image_path,
-                                                                                  index=topic_msg_counter_dict[topic])
+                    manifest_dict[topic][image_name] = create_manifest_entry_dict(
+                        msg_timestamp=msg_timestamp,
+                        rosbag_timestamp=t,
+                        file_path=image_path,
+                        index=topic_msg_counter_dict[topic],
+                    )
 
                 if topic in topic_msg_counter_dict.keys():
                     topic_msg_counter_dict[topic] += 1
@@ -404,3 +412,96 @@ def get_images_from_bag(rosbag_path: str,
 
     return output_imgs_folder_list
 
+
+def convert_offset_s_to_rosbag_ns(offset_s: int, first_rosbag_time_ns: int):
+
+    offset_ns = int(offset_s * 1e9)
+    return offset_ns + first_rosbag_time_ns
+
+
+def is_message_within_time_range(
+    time_ns: int, start_time_rosbag_ns: Optional[int] = None, end_time_rosbag_ns: Optional[int] = None
+) -> Tuple[bool, bool]:
+    """
+    This function checks if a timestamp is withing a specified timerange and returns True or False if we are. It also
+    returns a second boolean to indicate if we are past the end time. This can be used to break out of the loop early.
+    Args:
+        time_ns (int):
+        start_time_rosbag_ns (int):
+        end_time_rosbag_ns (int):
+
+    Returns: Turple of booleans
+
+    """
+
+    if start_time_rosbag_ns:
+        if time_ns < start_time_rosbag_ns:
+            return False, False
+
+    if end_time_rosbag_ns:
+        if time_ns > end_time_rosbag_ns:
+            return False, True
+
+    return True, False
+
+
+def get_clipped_bag_file(
+    input_bag_path: str,
+    output_bag_path: str,
+    topic_list: Optional[list] = None,
+    start_time: Optional[Union[float, int]] = None,
+    end_time: Optional[Union[float, int]] = None,
+    timestamp_type: str = "rosbag_ns",
+):
+    """
+    Args:
+        input_bag_path ():
+        output_bag_path ():
+        topic_list ():
+        start_time ():
+        end_time ():
+        timestamp_type ():
+
+    Returns:
+
+    """
+
+    if timestamp_type not in ["rosbag_ns", "offset_s"]:
+        raise Exception(f"Robologs: invalid timestamp_type parameter: {timestamp_type}")
+
+    with Bag(output_bag_path, "w") as outbag:
+        msg_counter = 0
+        first_time_stamp = -1
+        for topic, msg, t in Bag(input_bag_path).read_messages():
+
+            if first_time_stamp < 0:
+                first_time_stamp = t.to_nsec()
+                if timestamp_type == "offset_s":
+                    if start_time:
+                        start_time = convert_offset_s_to_rosbag_ns(
+                            offset_s=start_time, first_rosbag_time_ns=first_time_stamp
+                        )
+                    if end_time:
+                        end_time = convert_offset_s_to_rosbag_ns(
+                            offset_s=end_time, first_rosbag_time_ns=first_time_stamp
+                        )
+
+            if topic_list:
+                if topic not in topic_list:
+                    continue
+
+            in_time_range, past_end_time = is_message_within_time_range(time_ns=t.to_nsec(),
+                                                                        start_time_rosbag_ns=start_time,
+                                                                        end_time_rosbag_ns=end_time)
+
+            # stop iterating over rosbag if we're past the user specified ent-time
+            if past_end_time:
+                break
+
+            if not in_time_range:
+                continue
+
+            msg_counter += 1
+            outbag.write(topic, msg, t)
+
+    return

@@ -1,11 +1,11 @@
-import shutil
-import json
-import uuid
-import tarfile
-import os
 import glob
-from zipfile import ZipFile
+import json
+import os
+import shutil
+import tarfile
+import uuid
 from typing import Union
+from zipfile import ZipFile
 
 
 def split_folder_path_to_list(path: str) -> list:
@@ -48,7 +48,7 @@ def check_file_exists(path: str) -> None:
     Returns: None
     """
     if not os.path.exists(path):
-        raise Exception(f"{path } does not exist.")
+        raise Exception(f"{path} does not exist.")
     return
 
 
@@ -116,7 +116,7 @@ def unzip_file_to_folder(path_zip_file: str, output_folder: str) -> None:
 
     Returns: None
     """
-    with ZipFile(path_zip_file, 'r') as zipObj:
+    with ZipFile(path_zip_file, "r") as zipObj:
         zipObj.extractall(output_folder)
     return
 

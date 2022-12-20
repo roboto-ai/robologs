@@ -1,5 +1,6 @@
 import click
 
+
 @click.group()
 def ulog():
     """
@@ -7,6 +8,7 @@ def ulog():
     """
     pass
 
+
 @ulog.command()
 def noop():
-    click.echo('This is the noop subcommand of the ulog command')
+    click.echo("This is the noop subcommand of the ulog command")

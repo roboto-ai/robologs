@@ -1,28 +1,30 @@
-from pydantic import BaseModel
 from typing import List, Union
+
+from pydantic import BaseModel
 
 
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
+
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
 
 class Sources(BaseModel):
-    type:           str = ''
-    args:           dict = dict()
+    type: str = ""
+    args: dict = dict()
 
 
 class Destinations(BaseModel):
-    type:           str = ''
-    args:           dict = dict()
+    type: str = ""
+    args: dict = dict()
 
 
 class Connectors(BaseModel):
-    name:           str = ''
-    sources:        Sources
-    destinations:   Destinations
+    name: str = ""
+    sources: Sources
+    destinations: Destinations
 
 
 # class Connector:
@@ -35,4 +37,3 @@ class Connectors(BaseModel):
 #
 #     def run(self):
 #         print()
-

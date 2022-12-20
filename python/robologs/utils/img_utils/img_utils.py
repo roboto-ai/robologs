@@ -1,17 +1,16 @@
-import cv2
-import os
 import glob
+import os
+
+import cv2
 
 
 def resize_image(img, new_width: int, new_height: int, interpolation=cv2.INTER_AREA):
     return cv2.resize(src=img, dsize=(new_width, new_height), interpolation=interpolation)
 
 
-def create_thumbnails_from_folder(input_folder: str,
-                                  output_folder: str,
-                                  resize: float = 1.0,
-                                  max_size: int = 1000,
-                                  file_extension=".png"):
+def create_thumbnails_from_folder(
+    input_folder: str, output_folder: str, resize: float = 1.0, max_size: int = 1000, file_extension=".png"
+):
     """
     This function creates thumbnails from images in a folder
     Args:

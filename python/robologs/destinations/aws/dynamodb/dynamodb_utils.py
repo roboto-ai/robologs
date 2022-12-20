@@ -1,13 +1,12 @@
-import boto3
 import json
-from decimal import Decimal
-from boto3.dynamodb.conditions import Key
 import os
+from decimal import Decimal
+
+import boto3
+from boto3.dynamodb.conditions import Key
 
 
-def upload_json_to_table(json_path: str,
-                         table_name: str,
-                         region_name: str = "us-west-2") -> None:
+def upload_json_to_table(json_path: str, table_name: str, region_name: str = "us-west-2") -> None:
     """
     This function uploads a dictionary to a DynamoDB table (currently only used for anomaly detection)
     Args:
@@ -21,10 +20,10 @@ def upload_json_to_table(json_path: str,
 
     print(f"upload_json_to_table -> json_path: {json_path}")
 
-    with open(json_path, 'r') as f:
+    with open(json_path, "r") as f:
         data = json.load(f, parse_float=Decimal)
 
-    dynamodb = boto3.resource('dynamodb', region_name=region_name)
+    dynamodb = boto3.resource("dynamodb", region_name=region_name)
 
     table = dynamodb.Table(table_name)
 
@@ -41,11 +40,9 @@ def upload_json_to_table(json_path: str,
     return
 
 
-def update_field_in_table(table_name: str,
-                          key_name: str,
-                          key_value: str,
-                          update_dict: dict,
-                          region_name: str = "us-west-2") -> None:
+def update_field_in_table(
+    table_name: str, key_name: str, key_value: str, update_dict: dict, region_name: str = "us-west-2"
+) -> None:
     """
     This function updates a field in a table
     Args:
@@ -61,7 +58,7 @@ def update_field_in_table(table_name: str,
 
     update_expression = ["set "]
     update_values = dict()
-    dynamodb = boto3.resource('dynamodb', region_name=region_name)
+    dynamodb = boto3.resource("dynamodb", region_name=region_name)
 
     table = dynamodb.Table(table_name)
 
@@ -80,11 +77,9 @@ def update_field_in_table(table_name: str,
     return
 
 
-def update_tags_field_in_table(table_name: str,
-                               key_name: str,
-                               key_value: str,
-                               update_dict: dict,
-                               region_name: str = "us-west-2") -> None:
+def update_tags_field_in_table(
+    table_name: str, key_name: str, key_value: str, update_dict: dict, region_name: str = "us-west-2"
+) -> None:
     """
     This function updates the tags field in the dataset table.
     It first gets all existing tags, then appends them to the new tags.
@@ -103,7 +98,7 @@ def update_tags_field_in_table(table_name: str,
 
     update_expression = ["set "]
     update_values = dict()
-    dynamodb = boto3.resource('dynamodb', region_name=region_name)
+    dynamodb = boto3.resource("dynamodb", region_name=region_name)
 
     table = dynamodb.Table(table_name)
 
@@ -135,9 +130,7 @@ def update_tags_field_in_table(table_name: str,
     return
 
 
-def update_dataset_table(json_path: str,
-                         table_name: str,
-                         region_name: str = "us-west-2") -> None:
+def update_dataset_table(json_path: str, table_name: str, region_name: str = "us-west-2") -> None:
     """
     This function updates the AWS Dataset table with the dataset.json values
     Args:
@@ -151,10 +144,10 @@ def update_dataset_table(json_path: str,
 
     print(f"update_dataset_table -> json path: {json_path}")
 
-    with open(json_path, 'r') as f:
+    with open(json_path, "r") as f:
         data = json.load(f, parse_float=Decimal)
 
-    dynamodb = boto3.resource('dynamodb', region_name=region_name)
+    dynamodb = boto3.resource("dynamodb", region_name=region_name)
 
     table = dynamodb.Table(table_name)
 
@@ -192,22 +185,22 @@ def update_dataset_table(json_path: str,
 
         if "id" in dataset_entry.keys():
             response = table.update_item(
-                Key={'id': dataset_entry['id']},
+                Key={"id": dataset_entry["id"]},
                 UpdateExpression=a,
                 ExpressionAttributeValues=dict(v),
-                ExpressionAttributeNames={
-                    "#t": "timestamp"
-                }
+                ExpressionAttributeNames={"#t": "timestamp"},
             )
     return
 
 
-def upload_tables(base_folder: str,
-                  args: dict,
-                  name_topic_table: str,
-                  name_dataset_table: str,
-                  update_instead_of_replace: bool = False,
-                  region_name: str = "us-west-2") -> str:
+def upload_tables(
+    base_folder: str,
+    args: dict,
+    name_topic_table: str,
+    name_dataset_table: str,
+    update_instead_of_replace: bool = False,
+    region_name: str = "us-west-2",
+) -> str:
     """
     This function uploads the dataset.json and the topics.json to the dataset and topic table
     Args:
@@ -237,6 +230,6 @@ def upload_tables(base_folder: str,
             upload_json_to_table(dataset_json, name_dataset_table, region_name)
 
     dataset_json = os.path.join(tables_folder, "dataset.json")
-    with open(dataset_json, 'r') as f:
+    with open(dataset_json, "r") as f:
         data = json.load(f, parse_float=Decimal)
     return data[0]["id"]

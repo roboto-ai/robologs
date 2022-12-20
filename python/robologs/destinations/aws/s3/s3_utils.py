@@ -1,11 +1,9 @@
-import boto3
 import os
 
+import boto3
 
-def get_s3_link_from_topic(topic_path: str,
-                           bucket: str,
-                           prefix: str,
-                           split: str = "parquet") -> str:
+
+def get_s3_link_from_topic(topic_path: str, bucket: str, prefix: str, split: str = "parquet") -> str:
     """
     This function returns the S3 location of the topic folder name.
     Args:
@@ -22,9 +20,7 @@ def get_s3_link_from_topic(topic_path: str,
     return s3_path
 
 
-def upload_files(path: str,
-                 bucket_name: str,
-                 prefix: str = "processed/px4") -> None:
+def upload_files(path: str, bucket_name: str, prefix: str = "processed/px4") -> None:
     """
     This function uploads a file to S3
     Args:
@@ -36,14 +32,14 @@ def upload_files(path: str,
 
     """
     session = boto3.Session()
-    s3 = session.resource('s3')
+    s3 = session.resource("s3")
     bucket = s3.Bucket(bucket_name)
 
     for subdir, dirs, files in os.walk(path):
         for file in files:
             full_path = os.path.join(subdir, file)
-            with open(full_path, 'rb') as data:
+            with open(full_path, "rb") as data:
 
-                upload_path = prefix + "/" + full_path[len(path):]
+                upload_path = prefix + "/" + full_path[len(path) :]
                 bucket.put_object(Key=upload_path, Body=data)
     return

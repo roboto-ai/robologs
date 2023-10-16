@@ -18,8 +18,8 @@ If you are an engineer or scientist working in robotics, machine learning, compu
 
 Robologs is organized into a collection of sub-packages: 
 
-- **robologs-*-utils** packages contain utility functions for working with specific data formats.
 - **robologs-*-actions** packages contain containerized data transformations for specific data formats.
+- **robologs-*-utils** packages contain utility functions for working with specific data formats.
 
 Have a look at the packages below for more details.
 
@@ -27,11 +27,10 @@ Have a look at the packages below for more details.
 
 robologs currently supports transformations on the following data formats:
 
-| Package                                                                             | Extension    | Description                                                  | Support 
-|-------------------------------------------------------------------------------------|--------------|--------------------------------------------------------------|---------|
-| [robologs-ros-utils](https://github.com/roboto-ai/robologs-ros-utils)               | .bag         | A collection of utility functions to transform ROS data      | 🛠      |  
-| [robologs-ros-actions](https://github.com/roboto-ai/robologs-ros-actions)           | .bag         | A collection of containerized actions to transform ROS data  | 🛠      |
-| [robologs-timeseries-utils](https://github.com/roboto-ai/robologs-timeseries-utils) | .csv / .json | A collection of utility functions to analyze timeseries data | 🛠      |
+| Package                                                                             | Extensions          | Description                                                  | Support 
+|-------------------------------------------------------------------------------------|---------------------|--------------------------------------------------------------|---------|
+| [robologs-ros-actions](https://github.com/roboto-ai/robologs-ros-actions)           | .bag / .mcap / .db3 | A collection of containerized actions to transform ROS data  | 🛠      |
+| [robologs-timeseries-utils](https://github.com/roboto-ai/robologs-timeseries-utils) | .csv / .json        | A collection of utility functions to analyze timeseries data | 🛠      |
 
 Do you have a request for a data format that's not listed above? Raise an issue or join our Slack community and make a request!
 

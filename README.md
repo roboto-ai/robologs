@@ -25,7 +25,7 @@ Have a look at the packages below for more details.
 
 ## Data Formats<a name="data-formats" />
 
-`robologs` currently has transformations for the following data formats:
+`robologs` currently has actions for the following data formats:
 
 | Package                                                                             | Extensions          | Description                                                  | Support 
 |:------------------------------------------------------------------------------------|:--------------------|:-------------------------------------------------------------|:--------|
@@ -36,8 +36,8 @@ Utility packages:
 
 | Package                                                                             | Description                                                  |
 |:------------------------------------------------------------------------------------|:-------------------------------------------------------------|
+| [robologs-ros-utils](https://github.com/roboto-ai/robologs-ros-utils) | Utility functions for working with ROS data |
 | [robologs-timeseries-utils](https://github.com/roboto-ai/robologs-timeseries-utils) | Utility functions for working with timeseries data |
-
 
 Do you have a request for a data format that's not listed above? Raise an issue or join our [Discord community](https://discord.gg/YFenn4Ww5F) and make a request!
 
